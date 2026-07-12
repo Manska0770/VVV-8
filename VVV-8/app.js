@@ -291,6 +291,15 @@ function getTelegramWebAppObject() {
   return null
 }
 
+async function waitForTelegramWebApp(timeoutMs = 1000) {
+  const start = Date.now()
+  while (Date.now() - start < timeoutMs) {
+    if (getTelegramWebAppObject()) return true
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
+  return false
+}
+
 function getTelegramWebAppDebugInfo() {
   const webapp = getTelegramWebAppObject()
   const info = {
@@ -341,6 +350,68 @@ function parseTelegramWebAppUser(raw) {
   }
 
   return null
+}
+
+function getTelegramBotUsername() {
+  const raw = window.VVV_SUPABASE_CONFIG?.TELEGRAM_BOT_USERNAME || ''
+  const normalized = String(raw).trim()
+  return normalized ? normalized.replace(/^@/, '') : null
+}
+
+function showTelegramLoginFallback() {
+  const container = document.getElementById('telegramLoginFallback')
+  if (!container) return
+
+  const botUsername = getTelegramBotUsername()
+  container.innerHTML = ''
+
+  if (!botUsername) {
+    container.textContent = 'Добавьте TELEGRAM_BOT_USERNAME в vvv-config.js, чтобы войти через Telegram.'
+    container.classList.remove('hidden')
+    return
+  }
+
+  const info = document.createElement('div')
+  info.className = 'field-hint'
+  info.textContent = 'Если WebApp не работает, войдите через Telegram здесь:'
+  container.appendChild(info)
+
+  const widgetWrapper = document.createElement('div')
+  widgetWrapper.id = 'telegramLoginWidget'
+  container.appendChild(widgetWrapper)
+
+  const script = document.createElement('script')
+  script.src = 'https://telegram.org/js/telegram-widget.js?15'
+  script.async = true
+  script.setAttribute('data-telegram-login', botUsername)
+  script.setAttribute('data-size', 'large')
+  script.setAttribute('data-onauth', 'onTelegramAuth')
+  script.setAttribute('data-request-access', 'write')
+  widgetWrapper.appendChild(script)
+  container.classList.remove('hidden')
+}
+
+function hideTelegramLoginFallback() {
+  const container = document.getElementById('telegramLoginFallback')
+  if (!container) return
+  container.classList.add('hidden')
+  container.innerHTML = ''
+}
+
+window.onTelegramAuth = function (user) {
+  try {
+    const me = getMyProfile() || {}
+    me.telegram_id = user.id ? String(user.id) : me.telegram_id
+    me.telegram_username = user.username || me.telegram_username
+    me.telegram_name = [user.first_name, user.last_name].filter(Boolean).join(' ') || me.telegram_name
+    saveMyProfile(me)
+    if (humanCheckStatus) {
+      humanCheckStatus.textContent = 'Telegram ID получен через Login Widget. Можно сохранить анкету.'
+    }
+    hideTelegramLoginFallback()
+  } catch (err) {
+    console.warn('Telegram auth callback failed', err)
+  }
 }
 
 function getTelegramIdFromWebApp() {
@@ -1435,12 +1506,17 @@ async function init() {
   })() || 'default'
   setTheme(savedTheme)
 
-  if (window.Telegram?.WebApp) {
+  const webAppReady = await waitForTelegramWebApp(1000)
+  if (webAppReady) {
     try {
       window.Telegram.WebApp.ready()
     } catch (err) {
       console.warn('Telegram WebApp ready failed', err)
     }
+  }
+
+  if (!webAppReady) {
+    showTelegramLoginFallback()
   }
 
   const hasMainAppUi = Boolean(photoEl && profileNameEl && profileCityEl && profileBioEl && likeBtn && skipBtn && filterBtn)
@@ -1759,15 +1835,16 @@ async function init() {
           console.log('Telegram WebApp debug:', debug)
           if (humanCheckStatus) {
             if (!debug.hasTelegram) {
-              humanCheckStatus.textContent = 'В текущем окне Telegram не обнаружен. Откройте через кнопку Web App в боте.'
+              humanCheckStatus.textContent = 'В текущем окне Telegram не обнаружен. Откройте через кнопку Web App в боте или используйте вход через Telegram ниже.'
             } else if (!debug.hasTelegramWebAppObject) {
-              humanCheckStatus.textContent = 'Telegram найден, но WebApp объект отсутствует. Проверьте запуск из Web App.'
+              humanCheckStatus.textContent = 'Telegram найден, но WebApp объект отсутствует. Проверьте запуск из Web App или войдите через Telegram ниже.'
             } else if (!debug.hasInitDataUser) {
-              humanCheckStatus.textContent = 'WebApp найден, но данные пользователя не доступны. Попробуйте открыть через кнопку бота.'
+              humanCheckStatus.textContent = 'WebApp найден, но данные пользователя не доступны. Попробуйте открыть через кнопку бота или войдите через Telegram ниже.'
             } else {
-              humanCheckStatus.textContent = 'Telegram WebApp не обнаружен. Откройте страницу через Telegram.'
+              humanCheckStatus.textContent = 'Telegram WebApp не обнаружен. Откройте страницу через Telegram или войдите через Telegram ниже.'
             }
           }
+          showTelegramLoginFallback()
         }
       })
     }

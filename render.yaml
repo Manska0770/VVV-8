@@ -1,0 +1,10 @@
+services:
+  - type: static
+    name: VVV-8
+    env: static
+    plan: free
+    branch: main
+    root: .
+    publishPath: VVV-8
+    buildCommand: node scripts/generate-config.js
+    autoDeploy: true

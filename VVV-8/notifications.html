@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Уведомления</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <main class="content">
+      <section class="page notifications-page">
+        <section class="info-card filter-scroll">
+          <div class="page-title">Уведомления</div>
+          <div class="chats-list" id="chatsList">
+            <!-- Чаты будут сгенерированы здесь -->
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <footer class="actions-footer">
+      <button class="action-btn outline circle back-btn" id="backBtn" aria-label="Назад">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </footer>
+  </div>
+  <script src="vvv-config.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // Fallback filler: если внешний скрипт не отработал, покажем тестовые чаты
+    document.addEventListener('DOMContentLoaded', () => {
+      const chatsList = document.getElementById('chatsList')
+      if (!chatsList) return
+      if (chatsList.children.length === 0 || chatsList.innerHTML.trim() === '') {
+        const now = new Date()
+        const fallbackTime = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+        chatsList.innerHTML = `
+          <div class="chat-item">
+            <div class="chat-avatar">A</div>
+            <div class="chat-content">
+              <div class="chat-header"><h3 class="chat-name">Тест, 25</h3><span class="chat-time">${fallbackTime}</span></div>
+              <p class="chat-message">Тестовое уведомление — проверьте работу чатов.</p>
+            </div>
+            <div class="chat-status mutual">💕</div>
+          </div>`
+      }
+    })
+  </script>
+  <script src="notifications.js"></script>
+</body>
+</html>

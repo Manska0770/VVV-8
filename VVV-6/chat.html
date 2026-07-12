@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Чат</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <main class="content">
+      <section class="page chat-page">
+        <section class="info-card">
+          <div class="info-header">
+            <button class="action-btn outline circle" id="backBtn" aria-label="Назад">←</button>
+            <span class="info-title" id="chatName">Чат</span>
+          </div>
+          <div class="chat-messages" id="messages" style="min-height:300px;">
+            <!-- Сообщения -->
+          </div>
+          <div class="chat-input-wrap">
+            <input id="chatInput" placeholder="Сообщение" />
+            <button id="sendBtn" class="action-btn primary">Отправить</button>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+  <script src="../app.js"></script>
+  <script src="chat.js"></script>
+</body>
+</html>

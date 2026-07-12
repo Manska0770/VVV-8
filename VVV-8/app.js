@@ -23,7 +23,8 @@ const profileSaveBtn = document.getElementById('profileSaveBtn')
 const profileGeoToggle = document.getElementById('profileGeoToggle')
 const profileAvatarInput = document.getElementById('profileAvatarInput')
 const photoAddBtn = document.getElementById('photoAddBtn')
-const profileTelegramIdInput = document.getElementById('profileTelegramIdInput')
+const humanCheckBtn = document.getElementById('humanCheckBtn')
+const humanCheckStatus = document.getElementById('humanCheckStatus')
 const themeToggleBtn = document.getElementById('themeToggleBtn')
 const settingsBtn = document.getElementById('settingsBtn')
 const notificationsBtn = document.getElementById('notificationsBtn')
@@ -266,6 +267,22 @@ function initAuth() {
   } catch (err) {
     return false
   }
+}
+
+function getTelegramIdFromWebApp() {
+  try {
+    const tg = window.Telegram
+    const webapp = tg?.WebApp
+    if (webapp) {
+      const user = webapp.initDataUnsafe?.user || webapp.initData?.user
+      if (user && user.id) {
+        return user
+      }
+    }
+  } catch (err) {
+    console.warn('Telegram WebApp read failed', err)
+  }
+  return null
 }
 
 async function signInWithEmail(email, password) {
@@ -1374,7 +1391,6 @@ async function init() {
       try { if (profileAgeInput) profileAgeInput.value = me.age || '' } catch(e){}
       try { if (profileCityInput) profileCityInput.value = me.city || '' } catch(e){}
       try { if (profileBioInput) profileBioInput.value = me.bio || '' } catch(e){}
-      try { if (profileTelegramIdInput) profileTelegramIdInput.value = me.telegram_id || '' } catch(e){}
       if (me.photo && profileAvatar) {
         profileAvatar.style.backgroundImage = `url('${me.photo}')`
         profileAvatar.textContent = ''
@@ -1638,6 +1654,27 @@ async function init() {
     }
     if (profileEditBtn) profileEditBtn.addEventListener('click', showProfileEditPage)
     if (profileToSearchBtn) profileToSearchBtn.addEventListener('click', showFilterPage)
+    if (humanCheckBtn) {
+      humanCheckBtn.addEventListener('click', async () => {
+        const me = getMyProfile() || {}
+        const botCheckResult = getTelegramIdFromWebApp()
+        if (botCheckResult && botCheckResult.id) {
+          me.telegram_id = String(botCheckResult.id)
+          if (botCheckResult.username) me.telegram_username = botCheckResult.username
+          if (botCheckResult.first_name || botCheckResult.last_name) {
+            me.telegram_name = [botCheckResult.first_name, botCheckResult.last_name].filter(Boolean).join(' ')
+          }
+          saveMyProfile(me)
+          if (humanCheckStatus) {
+            humanCheckStatus.textContent = 'Telegram ID зафиксирован. Можно сохранить анкету.'
+          }
+        } else {
+          if (humanCheckStatus) {
+            humanCheckStatus.textContent = 'Telegram WebApp не обнаружен. Откройте страницу через Telegram.'
+          }
+        }
+      })
+    }
     if (profileSaveBtn && profileNameInput && profileAgeInput && profileCityInput && profileBioInput && profileAvatar) {
       profileSaveBtn.addEventListener('click', async () => {
         const name = profileNameInput.value.trim() || 'Алина'
@@ -1653,10 +1690,6 @@ async function init() {
         me.bio = bio
         me.gender = profileGenderSelect?.value || me.gender || ''
         me.geoEnabled = geoEnabled
-        const telegramId = profileTelegramIdInput?.value?.trim() || me.telegram_id || ''
-        if (telegramId) {
-          me.telegram_id = telegramId
-        }
         const bg = profileAvatar?.style?.backgroundImage || ''
         const photoUrl = bg.startsWith('url(') ? bg.slice(4, -1).replace(/^"|"$/g, '') : ''
         if (photoUrl) {
@@ -1676,9 +1709,6 @@ async function init() {
             profileCityEl.innerHTML = renderCityWithGeo(p.city, p.distance)
           } else {
             profileCityEl.textContent = p.city
-          }
-          if (profileTelegramIdInput) {
-            profileTelegramIdInput.value = p.telegram_id || ''
           }
           profileBioEl.textContent = p.bio
           if (p.photo) {

@@ -16,8 +16,6 @@
           <div class="photo photo-back" id="photo" style="background-image: url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=1200&q=80');"></div>
           <div class="photo-overlay">
             <p class="profile-name" id="profileName">Имя, возраст</p>
-            <p class="profile-subtitle" id="profileHandle">@username</p>
-            <p class="profile-id" id="telegramId">Telegram ID: не подключен</p>
             <p class="profile-city" id="profileCity">Город
               <span class="geo-badge" title="Расстояние до вас">
                 <svg viewBox="0 0 64 80" width="18" height="18" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -32,10 +30,6 @@
         </section>
 
         <section class="info-card profile-search-style">
-          <div class="profile-meta">
-            <p class="profile-meta-row"><strong>ID клиента:</strong> <span id="profileTelegramId">не подключен</span></p>
-            <p class="profile-meta-row"><strong>Telegram:</strong> <span id="profileTelegramHandle">не подключен</span></p>
-          </div>
           <p class="profile-bio" id="profileBio">Описание профиля, короткая биография и интересы.</p>
         </section>
         <div class="profile-actions" id="profileActions">
@@ -97,22 +91,16 @@
         }
 
         if (user) {
-            const name = user.name || 'Алина'
+          const name = user.name || 'Алина'
           const age = user.age || ''
           const city = user.city || 'Казань'
           const bio = user.bio || 'Описание профиля, короткая биография и интересы.'
           const distance = user.distance || null
-          const photo = user.telegram_photo_url || user.photo || null
+          const photo = user.photo || null
           const avatar = user.avatar || null
-          const telegramId = user.telegram_id || user.id || ''
-          const telegramHandle = user.telegram_username || user.telegram_name || ''
           const geoEnabled = user.geoEnabled === true
 
           document.getElementById('profileName').textContent = age ? `${name}, ${age}` : name
-          document.getElementById('profileHandle').textContent = telegramHandle ? `@${telegramHandle.replace(/^@/, '')}` : ''
-          document.getElementById('telegramId').textContent = telegramId ? `Telegram ID: ${telegramId}` : 'Telegram ID: не подключен'
-          document.getElementById('profileTelegramId').textContent = telegramId ? telegramId : 'не подключен'
-          document.getElementById('profileTelegramHandle').textContent = telegramHandle ? `@${telegramHandle.replace(/^@/, '')}` : 'не подключен'
           document.getElementById('profileCity').innerHTML = renderCityWithGeo(city, distance, geoEnabled)
           document.getElementById('profileBio').textContent = bio
           const photoEl = document.getElementById('photo')
@@ -132,10 +120,6 @@
         const city = 'Казань'
         const bio = 'Описание профиля, короткая биография и интересы.'
         document.getElementById('profileName').textContent = name
-        document.getElementById('profileHandle').textContent = ''
-        document.getElementById('telegramId').textContent = 'Telegram ID: не подключен'
-        document.getElementById('profileTelegramId').textContent = 'не подключен'
-        document.getElementById('profileTelegramHandle').textContent = 'не подключен'
         document.getElementById('profileCity').innerHTML = renderCityWithGeo(city)
         document.getElementById('profileBio').textContent = bio
       } catch (err) {

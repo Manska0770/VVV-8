@@ -404,7 +404,6 @@ window.onTelegramAuth = function (user) {
     me.telegram_id = user.id ? String(user.id) : me.telegram_id
     me.telegram_username = user.username || me.telegram_username
     me.telegram_name = [user.first_name, user.last_name].filter(Boolean).join(' ') || me.telegram_name
-    me.telegram_photo_url = user.photo_url || user.photoURL || me.telegram_photo_url
     saveMyProfile(me)
     if (humanCheckStatus) {
       humanCheckStatus.textContent = 'Telegram ID получен через Login Widget. Можно сохранить анкету.'
@@ -503,7 +502,6 @@ function normalizeRemoteProfile(record) {
     telegram_id: record.telegram_id || null,
     telegram_username: record.telegram_username || null,
     telegram_name: record.telegram_name || null,
-    telegram_photo_url: record.telegram_photo_url || record.photo_url || null,
     createdAt: record.createdAt || record.created_at || Date.now()
   }
   return profile
@@ -1534,7 +1532,6 @@ async function init() {
     me.telegram_id = String(telegramUser.id)
     me.telegram_username = telegramUser.username || telegramUser.user_name || me.telegram_username
     me.telegram_name = telegramUser.name || telegramUser.first_name || telegramUser.last_name || [telegramUser.first_name, telegramUser.last_name].filter(Boolean).join(' ') || me.telegram_name
-    me.telegram_photo_url = telegramUser.photo_url || telegramUser.photoURL || me.telegram_photo_url
     saveMyProfile(me)
     hideTelegramLoginFallback()
   } else {

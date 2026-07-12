@@ -4,7 +4,7 @@ services:
     env: node
     plan: free
     branch: main
-    root: .
+    root: gigastudio-d61998ff
     buildCommand: npm install && npm run build
     startCommand: npm start
     autoDeploy: true

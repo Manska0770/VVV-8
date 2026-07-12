@@ -1,10 +1,10 @@
 services:
-  - type: static
+  - type: web
     name: VVV-8
-    env: static
+    env: node
     plan: free
     branch: main
     root: .
-    buildCommand: npm install && npm run build && npm run export
-    publishPath: out
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     autoDeploy: true

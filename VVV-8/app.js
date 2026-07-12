@@ -23,9 +23,9 @@ const profileSaveBtn = document.getElementById('profileSaveBtn')
 const profileGeoToggle = document.getElementById('profileGeoToggle')
 const profileAvatarInput = document.getElementById('profileAvatarInput')
 const photoAddBtn = document.getElementById('photoAddBtn')
+const profileTelegramIdInput = document.getElementById('profileTelegramIdInput')
 const themeToggleBtn = document.getElementById('themeToggleBtn')
 const settingsBtn = document.getElementById('settingsBtn')
-const settingsMenu = document.getElementById('settingsMenu')
 const notificationsBtn = document.getElementById('notificationsBtn')
 const backBtn = document.getElementById('backBtn')
 const profileAvatar = document.querySelector('.profile-avatar')
@@ -330,6 +330,9 @@ function normalizeRemoteProfile(record) {
     lat: typeof record.lat === 'number' ? record.lat : record.latitude,
     lon: typeof record.lon === 'number' ? record.lon : record.longitude,
     distance: record.distance || '',
+    telegram_id: record.telegram_id || null,
+    telegram_username: record.telegram_username || null,
+    telegram_name: record.telegram_name || null,
     createdAt: record.createdAt || record.created_at || Date.now()
   }
   return profile
@@ -347,6 +350,24 @@ async function fetchSupabaseProfiles() {
   } catch (err) {
     console.warn('Supabase fetch failed', err)
     return []
+  }
+}
+
+async function getSupabaseProfileByTelegramId(telegramId) {
+  if (!supabaseClient || !telegramId) return null
+  try {
+    const { data, error } = await supabaseClient.from(SUPABASE_TABLE)
+      .select('*')
+      .eq('telegram_id', telegramId)
+      .limit(1)
+    if (error) {
+      console.warn('Supabase fetch by Telegram ID error', error)
+      return null
+    }
+    return Array.isArray(data) && data.length ? data[0] : null
+  } catch (err) {
+    console.warn('Supabase fetch by Telegram ID failed', err)
+    return null
   }
 }
 
@@ -370,7 +391,16 @@ async function saveSupabaseProfile(profile) {
     const supUser = await getSupabaseUser()
     if (supUser && supUser.id) payload.owner = supUser.id
   } catch (err) {}
+
   try {
+    if (profile.telegram_id) {
+      const existing = await getSupabaseProfileByTelegramId(profile.telegram_id)
+      if (existing && existing.id && existing.id !== payload.id) {
+        payload.id = existing.id
+        payload.created_at = existing.created_at || payload.created_at
+      }
+    }
+
     const { data, error } = await supabaseClient.from(SUPABASE_TABLE).upsert(payload, { returning: 'representation', onConflict: 'id' })
     if (error) {
       console.warn('Supabase save error', error)
@@ -663,7 +693,12 @@ function addOrUpdateDatabaseProfile(profile) {
   }
   updateDatabase((db) => {
     db.profiles = db.profiles || []
-    const index = db.profiles.findIndex((item) => item._id === normalized._id)
+    const index = db.profiles.findIndex((item) => {
+      if (!item || typeof item !== 'object') return false
+      if (item._id && item._id === normalized._id) return true
+      if (normalized.telegram_id && item.telegram_id && item.telegram_id === normalized.telegram_id) return true
+      return false
+    })
     if (index >= 0) {
       db.profiles[index] = { ...db.profiles[index], ...normalized }
     } else {
@@ -1339,6 +1374,7 @@ async function init() {
       try { if (profileAgeInput) profileAgeInput.value = me.age || '' } catch(e){}
       try { if (profileCityInput) profileCityInput.value = me.city || '' } catch(e){}
       try { if (profileBioInput) profileBioInput.value = me.bio || '' } catch(e){}
+      try { if (profileTelegramIdInput) profileTelegramIdInput.value = me.telegram_id || '' } catch(e){}
       if (me.photo && profileAvatar) {
         profileAvatar.style.backgroundImage = `url('${me.photo}')`
         profileAvatar.textContent = ''
@@ -1617,6 +1653,10 @@ async function init() {
         me.bio = bio
         me.gender = profileGenderSelect?.value || me.gender || ''
         me.geoEnabled = geoEnabled
+        const telegramId = profileTelegramIdInput?.value?.trim() || me.telegram_id || ''
+        if (telegramId) {
+          me.telegram_id = telegramId
+        }
         const bg = profileAvatar?.style?.backgroundImage || ''
         const photoUrl = bg.startsWith('url(') ? bg.slice(4, -1).replace(/^"|"$/g, '') : ''
         if (photoUrl) {
@@ -1636,6 +1676,9 @@ async function init() {
             profileCityEl.innerHTML = renderCityWithGeo(p.city, p.distance)
           } else {
             profileCityEl.textContent = p.city
+          }
+          if (profileTelegramIdInput) {
+            profileTelegramIdInput.value = p.telegram_id || ''
           }
           profileBioEl.textContent = p.bio
           if (p.photo) {

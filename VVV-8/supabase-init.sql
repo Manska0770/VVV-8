@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   owner uuid
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS profiles_telegram_id_unique_idx ON public.profiles (telegram_id) WHERE telegram_id IS NOT NULL;
+
 -- Enable row level security
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 

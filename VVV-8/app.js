@@ -291,54 +291,66 @@ function getTelegramWebAppObject() {
   return null
 }
 
+function getTelegramWebAppDebugInfo() {
+  const webapp = getTelegramWebAppObject()
+  const info = {
+    hasTelegram: typeof window.Telegram !== 'undefined',
+    hasTelegramWebApp: Boolean(window.Telegram?.WebApp),
+    hasTelegramWebAppObject: Boolean(webapp),
+    initDataUnsafeType: webapp && typeof webapp.initDataUnsafe,
+    initDataType: webapp && typeof webapp.initData,
+    hasInitDataUser: null,
+    rawInitDataUnsafe: null,
+    rawInitData: null,
+  }
+  if (webapp) {
+    info.rawInitDataUnsafe = webapp.initDataUnsafe
+    info.rawInitData = webapp.initData
+    const unsafeUser = parseTelegramWebAppUser(webapp.initDataUnsafe)
+    const dataUser = parseTelegramWebAppUser(webapp.initData)
+    info.hasInitDataUser = Boolean((unsafeUser && unsafeUser.id) || (dataUser && dataUser.id))
+  }
+  return info
+}
+
+function parseTelegramWebAppUser(raw) {
+  if (!raw) return null
+  if (typeof raw === 'object') return raw.user || raw
+  if (typeof raw !== 'string') return null
+
+  const trimmed = raw.trim()
+  if (!trimmed) return null
+
+  if (trimmed.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(trimmed)
+      return parsed.user || parsed
+    } catch (err) {
+      return null
+    }
+  }
+
+  if (trimmed.includes('user=')) {
+    try {
+      const params = new URLSearchParams(trimmed)
+      const userJson = params.get('user')
+      return userJson ? JSON.parse(userJson) : null
+    } catch (err) {
+      return null
+    }
+  }
+
+  return null
+}
+
 function getTelegramIdFromWebApp() {
   try {
     const webapp = getTelegramWebAppObject()
     if (!webapp) return null
 
-    let user = null
-    if (webapp.initDataUnsafe && typeof webapp.initDataUnsafe === 'object') {
-      user = webapp.initDataUnsafe.user
-    }
-    if (!user && webapp.initData && typeof webapp.initData === 'object') {
-      user = webapp.initData.user
-    }
-
-    if (!user && webapp.initData && typeof webapp.initData === 'string') {
-      const raw = webapp.initData
-      if (raw.includes('user=')) {
-        try {
-          const params = new URLSearchParams(raw)
-          const userJson = params.get('user')
-          if (userJson) {
-            user = JSON.parse(userJson)
-          }
-        } catch (err) {
-          console.warn('Telegram WebApp initData parse failed', err)
-        }
-      }
-      if (!user && raw.trim().startsWith('{')) {
-        try {
-          const parsed = JSON.parse(raw)
-          user = parsed.user || parsed
-        } catch (err) {
-          console.warn('Telegram WebApp initData JSON parse failed', err)
-        }
-      }
-    }
-
-    if (webapp.initDataUnsafe && typeof webapp.initDataUnsafe === 'string') {
-      try {
-        const parsed = JSON.parse(webapp.initDataUnsafe)
-        user = user || parsed.user || parsed
-      } catch (err) {
-        // ignore
-      }
-    }
-
-    if (user && user.id) {
-      return user
-    }
+    let user = parseTelegramWebAppUser(webapp.initDataUnsafe)
+    user = user || parseTelegramWebAppUser(webapp.initData)
+    if (user && user.id) return user
   } catch (err) {
     console.warn('Telegram WebApp read failed', err)
   }
@@ -1725,6 +1737,14 @@ async function init() {
     if (humanCheckBtn) {
       humanCheckBtn.addEventListener('click', async () => {
         const me = getMyProfile() || {}
+        if (window.Telegram?.WebApp) {
+          try {
+            window.Telegram.WebApp.ready()
+          } catch (err) {
+            console.warn('Telegram WebApp ready failed', err)
+          }
+        }
+
         const botCheckResult = getTelegramIdFromWebApp()
         if (botCheckResult && botCheckResult.id) {
           me.telegram_id = String(botCheckResult.id)
@@ -1735,8 +1755,18 @@ async function init() {
             humanCheckStatus.textContent = 'Telegram ID зафиксирован. Можно сохранить анкету.'
           }
         } else {
+          const debug = getTelegramWebAppDebugInfo()
+          console.log('Telegram WebApp debug:', debug)
           if (humanCheckStatus) {
-            humanCheckStatus.textContent = 'Telegram WebApp не обнаружен. Откройте страницу через Telegram.'
+            if (!debug.hasTelegram) {
+              humanCheckStatus.textContent = 'В текущем окне Telegram не обнаружен. Откройте через кнопку Web App в боте.'
+            } else if (!debug.hasTelegramWebAppObject) {
+              humanCheckStatus.textContent = 'Telegram найден, но WebApp объект отсутствует. Проверьте запуск из Web App.'
+            } else if (!debug.hasInitDataUser) {
+              humanCheckStatus.textContent = 'WebApp найден, но данные пользователя не доступны. Попробуйте открыть через кнопку бота.'
+            } else {
+              humanCheckStatus.textContent = 'Telegram WebApp не обнаружен. Откройте страницу через Telegram.'
+            }
           }
         }
       })

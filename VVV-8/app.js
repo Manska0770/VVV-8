@@ -414,13 +414,22 @@ window.onTelegramAuth = function (user) {
   }
 }
 
+function getTelegramWebAppUser() {
+  const webapp = getTelegramWebAppObject()
+  if (!webapp) return null
+
+  const unsafeUser = parseTelegramWebAppUser(webapp.initDataUnsafe)
+  if (unsafeUser && unsafeUser.id) return unsafeUser
+
+  const dataUser = parseTelegramWebAppUser(webapp.initData)
+  if (dataUser && dataUser.id) return dataUser
+
+  return null
+}
+
 function getTelegramIdFromWebApp() {
   try {
-    const webapp = getTelegramWebAppObject()
-    if (!webapp) return null
-
-    let user = parseTelegramWebAppUser(webapp.initDataUnsafe)
-    user = user || parseTelegramWebAppUser(webapp.initData)
+    const user = getTelegramWebAppUser()
     if (user && user.id) return user
   } catch (err) {
     console.warn('Telegram WebApp read failed', err)
@@ -1508,14 +1517,24 @@ async function init() {
 
   const webAppReady = await waitForTelegramWebApp(1000)
   if (webAppReady) {
+    const webapp = getTelegramWebAppObject()
     try {
-      window.Telegram.WebApp.ready()
+      if (webapp?.ready) webapp.ready()
+      else if (window.Telegram?.WebApp?.ready) window.Telegram.WebApp.ready()
     } catch (err) {
       console.warn('Telegram WebApp ready failed', err)
     }
   }
 
-  if (!webAppReady) {
+  const telegramUser = getTelegramIdFromWebApp()
+  if (telegramUser && telegramUser.id) {
+    const me = getMyProfile() || {}
+    me.telegram_id = String(telegramUser.id)
+    me.telegram_username = telegramUser.username || telegramUser.user_name || me.telegram_username
+    me.telegram_name = telegramUser.name || telegramUser.first_name || telegramUser.last_name || [telegramUser.first_name, telegramUser.last_name].filter(Boolean).join(' ') || me.telegram_name
+    saveMyProfile(me)
+    hideTelegramLoginFallback()
+  } else {
     showTelegramLoginFallback()
   }
 

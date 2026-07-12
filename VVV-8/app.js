@@ -269,9 +269,31 @@ function initAuth() {
   }
 }
 
+function getTelegramWebAppObject() {
+  const accessors = [
+    () => window.Telegram?.WebApp,
+    () => window.TelegramWebApp,
+    () => window.WebApp,
+    () => window.parent?.Telegram?.WebApp,
+    () => window.top?.Telegram?.WebApp,
+    () => window.parent?.TelegramWebApp,
+    () => window.parent?.WebApp,
+  ]
+
+  for (const get of accessors) {
+    try {
+      const result = get()
+      if (result) return result
+    } catch (err) {
+      // ignore cross-origin or missing parent errors
+    }
+  }
+  return null
+}
+
 function getTelegramIdFromWebApp() {
   try {
-    const webapp = window.Telegram?.WebApp || window.parent?.Telegram?.WebApp || window.TelegramWebApp || window.WebApp || null
+    const webapp = getTelegramWebAppObject()
     if (!webapp) return null
 
     let user = null
@@ -302,6 +324,15 @@ function getTelegramIdFromWebApp() {
         } catch (err) {
           console.warn('Telegram WebApp initData JSON parse failed', err)
         }
+      }
+    }
+
+    if (webapp.initDataUnsafe && typeof webapp.initDataUnsafe === 'string') {
+      try {
+        const parsed = JSON.parse(webapp.initDataUnsafe)
+        user = user || parsed.user || parsed
+      } catch (err) {
+        // ignore
       }
     }
 

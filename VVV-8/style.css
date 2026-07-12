@@ -189,6 +189,184 @@ button:focus-visible { outline: none; }
   .profile-page .profile-bio { font-size: 1rem; }
 }
 
+.profile-full-page .profile-hero-card {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  padding: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #eef4ff 100%);
+  border-radius: 28px;
+}
+
+.profile-full-page .profile-hero-left {
+  flex: 0 0 120px;
+}
+
+.profile-full-page .profile-avatar-large {
+  width: 120px;
+  height: 120px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, #eef2ff, #dbeafe);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.2rem;
+  font-weight: 800;
+  color: #1f2937;
+  overflow: hidden;
+  position: relative;
+}
+
+.profile-full-page .profile-avatar-large.profile-avatar-filled {
+  color: transparent;
+  background-size: cover;
+  background-position: center;
+}
+
+.profile-full-page .profile-hero-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.profile-full-page .profile-hero-line {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.profile-full-page .premium-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f97316, #ef4444);
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.profile-full-page .profile-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.profile-full-page .hero-id {
+  margin: 10px 0 0;
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.profile-full-page .hero-id span {
+  color: #2563eb;
+}
+
+.profile-full-page .profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 10px;
+}
+
+.profile-full-page .stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 10px;
+  border-radius: 22px;
+  background: rgba(59, 130, 246, 0.12);
+}
+
+.profile-full-page .stat-value {
+  display: block;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.profile-full-page .stat-label {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.profile-full-page .profile-data-card {
+  gap: 18px;
+}
+
+.profile-full-page .profile-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 12px;
+}
+
+.profile-full-page .meta-title {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+}
+
+.profile-full-page .meta-value {
+  color: var(--text);
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.profile-full-page .profile-info-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-full-page .profile-info-title {
+  color: var(--accent-dark);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.profile-full-page .profile-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 12px;
+}
+
+.profile-full-page .profile-actions .search-btn {
+  width: 100%;
+}
+
+@media (max-width: 420px) {
+  .profile-full-page .profile-hero-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .profile-full-page .profile-hero-left {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  .profile-full-page .profile-stats {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+  .profile-full-page .profile-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
 .filter-scroll::-webkit-scrollbar { width: 7px; }
 .filter-scroll::-webkit-scrollbar-thumb { background: rgba(15,23,42,0.18); border-radius: 999px; }
 .filter-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -259,9 +437,12 @@ button:focus-visible { outline: none; }
 .action-btn { width: 60px; height: 60px; border-radius: 50%; font-size: 1.3rem; font-weight: 700; display: flex; align-items: center; justify-content: center; transition: transform .2s ease, box-shadow .2s ease; }
 .action-btn:hover { transform: translateY(-2px); box-shadow: 0 20px 40px rgba(15,23,42,0.16); }
 .settings-menu-wrap { position: relative; }
-.settings-menu { position: absolute; left: 0; bottom: 72px; display: flex; flex-direction: column; gap: 14px; padding: 0; background: transparent; border-radius: 0; border: none; box-shadow: none; opacity: 0; visibility: hidden; transform: translateY(10px) scale(0.97); transition: opacity .24s ease, transform .24s ease, visibility .24s ease; z-index: 10; pointer-events: none; }
+.settings-menu { position: absolute; left: 0; bottom: 72px; display: flex; flex-direction: column; gap: 10px; padding: 10px; background: rgba(255,255,255,0.92); border-radius: 24px; border: 1px solid rgba(15,23,42,0.08); box-shadow: 0 24px 40px rgba(15,23,42,0.14); opacity: 0; visibility: hidden; transform: translateY(10px) scale(0.97); transition: opacity .24s ease, transform .24s ease, visibility .24s ease; z-index: 10; pointer-events: none; }
 .settings-menu.visible { opacity: 1; visibility: visible; transform: translateY(0) scale(1); pointer-events: auto; }
 .settings-menu.hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+.settings-menu-item { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); padding: 10px 12px; border-radius: 18px; transition: background .24s ease; }
+.settings-menu-item:hover { background: rgba(15,23,42,0.05); }
+.settings-menu-item .settings-menu-label { font-size: 0.88rem; font-weight: 700; color: var(--text); }
 .settings-menu .action-btn { background: var(--surface); box-shadow: 0 24px 40px rgba(15,23,42,0.14), 0 0 0 1px rgba(255,255,255,0.06); opacity: 0; transform: translateY(30px); transition: box-shadow .24s ease; }
 
 /* Анимация выпадения только когда меню видно */

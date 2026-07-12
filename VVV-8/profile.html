@@ -9,53 +9,132 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="app-shell">
+  <div class="app-shell profile-shell">
     <main class="content">
-      <section class="page profile-page">
-        <section class="photo-card">
-          <div class="photo photo-back" id="photo" style="background-image: url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=1200&q=80');"></div>
-          <div class="photo-overlay">
-            <p class="profile-name" id="profileName">Имя, возраст</p>
-            <p class="profile-subtitle" id="profileHandle">@username</p>
-            <p class="profile-id" id="telegramId">Telegram ID: не подключен</p>
-            <p class="profile-city" id="profileCity">Город
-              <span class="geo-badge" title="Расстояние до вас">
-                <svg viewBox="0 0 64 80" width="18" height="18" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="32" cy="20" r="18" fill="#ff4b6b" />
-                  <ellipse cx="42" cy="12" rx="6" ry="6" fill="#ff9aa4" opacity="0.65" />
-                  <rect x="28" y="36" width="8" height="34" rx="4" fill="#dbe7ee" />
-                </svg>
-                <span class="geo-distance">от тебя 5 км</span>
-              </span>
-            </p>
+      <section class="page profile-page profile-full-page">
+        <section class="info-card profile-hero-card">
+          <div class="profile-hero-left">
+            <div class="profile-avatar profile-avatar-large" id="profileAvatar">A</div>
+          </div>
+          <div class="profile-hero-right">
+            <div class="profile-hero-line">
+              <div>
+                <p class="profile-name" id="profileName">Имя, возраст</p>
+                <p class="profile-subtitle" id="profileHandle">@username</p>
+                <p class="profile-id hero-id">ID клиента: <span id="profileTelegramId">не подключен</span></p>
+              </div>
+              <span class="premium-badge" id="profilePremium">Premium</span>
+            </div>
+            <p class="profile-status" id="profileStatus">Telegram профиль подключен и работает</p>
+            <div class="profile-stats">
+              <div class="stat-card">
+                <span class="stat-value" id="likesCount">0</span>
+                <span class="stat-label">Лайков</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-value" id="matchesCount">0</span>
+                <span class="stat-label">Матчей</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-value" id="viewsCount">0</span>
+                <span class="stat-label">Просмотров</span>
+              </div>
+            </div>
           </div>
         </section>
 
-        <section class="info-card profile-search-style">
-          <div class="profile-meta">
-            <p class="profile-meta-row"><strong>ID клиента:</strong> <span id="profileTelegramId">не подключен</span></p>
-            <p class="profile-meta-row"><strong>Telegram:</strong> <span id="profileTelegramHandle">не подключен</span></p>
+        <section class="info-card profile-data-card">
+          <div class="profile-meta profile-meta-grid">
+            <div>
+              <div class="meta-title">ID клиента</div>
+              <div class="meta-value" id="profileTelegramId">не подключен</div>
+            </div>
+            <div>
+              <div class="meta-title">Telegram</div>
+              <div class="meta-value" id="profileTelegramHandle">не подключен</div>
+            </div>
+            <div>
+              <div class="meta-title">Имя</div>
+              <div class="meta-value" id="profileDisplayName">не задано</div>
+            </div>
           </div>
-          <p class="profile-bio" id="profileBio">Описание профиля, короткая биография и интересы.</p>
+          <div class="profile-info-block">
+            <div class="profile-info-title">О себе</div>
+            <p class="profile-bio" id="profileBio">Описание профиля, короткая биография и интересы.</p>
+          </div>
+          <div class="profile-actions">
+            <a class="search-btn" href="index.html#edit">Изменить анкету</a>
+            <a class="search-btn outline" href="index.html">К поиску</a>
+          </div>
         </section>
-        <div class="profile-actions" id="profileActions">
-          <div id="authControls"></div>
-          <a class="search-btn" href="index.html#edit">Изменить анкету</a>
-          <a class="search-btn outline" href="index.html">К поиску</a>
-        </div>
       </section>
     </main>
   </div>
   <script src="vvv-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
   <script>
-    function renderCityWithGeo(city, distance, showGeo) {
-      if (!showGeo) return city
-      const dist = distance || (Math.floor(Math.random() * 50) + 1)
-      return `${city} <span class="geo-badge" title="Расстояние до вас"><svg viewBox="0 0 64 80" width="18" height="18" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="20" r="18" fill="#ff4b6b" /><ellipse cx="42" cy="12" rx="6" ry="6" fill="#ff9aa4" opacity="0.65" /><rect x="28" y="36" width="8" height="34" rx="4" fill="#dbe7ee" /></svg><span class="geo-distance">от тебя ${dist} км</span></span>`
+    function parseTelegramWebAppUser(raw) {
+      if (!raw) return null
+      if (typeof raw === 'object') return raw.user || raw
+      if (typeof raw !== 'string') return null
+      const trimmed = raw.trim()
+      if (!trimmed) return null
+      if (trimmed.startsWith('{')) {
+        try {
+          const parsed = JSON.parse(trimmed)
+          return parsed.user || parsed
+        } catch (err) {
+          return null
+        }
+      }
+      if (trimmed.includes('user=')) {
+        try {
+          const params = new URLSearchParams(trimmed)
+          const userJson = params.get('user')
+          return userJson ? JSON.parse(userJson) : null
+        } catch (err) {
+          return null
+        }
+      }
+      return null
     }
 
-    function getDatabaseState() {
+    function getTelegramWebAppObject() {
+      const accessors = [
+        () => window.Telegram?.WebApp,
+        () => window.TelegramWebApp,
+        () => window.WebApp,
+        () => window.parent?.Telegram?.WebApp,
+        () => window.parent?.TelegramWebApp,
+        () => window.parent?.WebApp,
+      ]
+      for (const get of accessors) {
+        try {
+          const result = get()
+          if (result) return result
+        } catch (err) {
+          // ignore cross-origin access
+        }
+      }
+      return null
+    }
+
+    function getTelegramWebAppUser() {
+      const webapp = getTelegramWebAppObject()
+      if (!webapp) return null
+      try {
+        if (typeof webapp.ready === 'function') webapp.ready()
+      } catch (err) {
+        // ignore
+      }
+      const unsafeUser = parseTelegramWebAppUser(webapp.initDataUnsafe)
+      if (unsafeUser && unsafeUser.id) return unsafeUser
+      const dataUser = parseTelegramWebAppUser(webapp.initData)
+      if (dataUser && dataUser.id) return dataUser
+      return null
+    }
+
+    function loadDatabaseState() {
       try {
         const raw = localStorage.getItem('vvv_database')
         return raw ? JSON.parse(raw) : null
@@ -70,91 +149,83 @@
       } catch (err) {}
     }
 
-    function getSupabaseClient() {
-      if (!window.VVV_SUPABASE_CONFIG || !window.VVV_SUPABASE_CONFIG.SUPABASE_URL || !window.VVV_SUPABASE_CONFIG.SUPABASE_ANON_KEY) {
-        return null
-      }
-      if (window.supabaseClient) return window.supabaseClient
-      if (window.supabase) {
-        window.supabaseClient = window.supabase.createClient(window.VVV_SUPABASE_CONFIG.SUPABASE_URL, window.VVV_SUPABASE_CONFIG.SUPABASE_ANON_KEY)
-        return window.supabaseClient
-      }
-      return null
+    function getStoredUser() {
+      const state = loadDatabaseState()
+      return state && state.user ? state.user : null
     }
 
+    function updateStoredUser(updater) {
+      const state = loadDatabaseState() || {}
+      state.user = state.user || {}
+      updater(state.user)
+      saveDatabaseState(state)
+      return state.user
+    }
 
-    function loadProfile() {
-      try {
-        const rawDb = localStorage.getItem('vvv_database')
-        let user = null
-        if (rawDb) {
-          try {
-            const db = JSON.parse(rawDb)
-            user = db && db.user ? db.user : null
-          } catch (e) {
-            user = null
-          }
-        }
+    function applyProfile(user) {
+      const name = user.name || user.telegram_name || 'Алина'
+      const age = user.age || ''
+      const displayName = user.telegram_name || name
+      const telegramHandle = user.telegram_username ? `@${user.telegram_username.replace(/^@/, '')}` : ''
+      const telegramId = user.telegram_id || user.id || ''
+      const photo = user.telegram_photo_url || user.photo || ''
+      const bio = user.bio || 'Описание профиля, короткая биография и интересы.'
+      const likes = user.likes || 0
+      const matches = user.matches || 0
+      const views = user.views || 0
 
-        if (user) {
-            const name = user.name || 'Алина'
-          const age = user.age || ''
-          const city = user.city || 'Казань'
-          const bio = user.bio || 'Описание профиля, короткая биография и интересы.'
-          const distance = user.distance || null
-          const photo = user.telegram_photo_url || user.photo || null
-          const avatar = user.avatar || null
-          const telegramId = user.telegram_id || user.id || ''
-          const telegramHandle = user.telegram_username || user.telegram_name || ''
-          const geoEnabled = user.geoEnabled === true
+      document.getElementById('profileName').textContent = age ? `${displayName}, ${age}` : displayName
+      document.getElementById('profileHandle').textContent = telegramHandle || 'не подключен'
+      document.getElementById('profileTelegramId').textContent = telegramId || 'не подключен'
+      document.getElementById('profileTelegramHandle').textContent = telegramHandle || 'не подключен'
+      document.getElementById('profileDisplayName').textContent = displayName
+      document.getElementById('profileBio').textContent = bio
+      document.getElementById('likesCount').textContent = likes
+      document.getElementById('matchesCount').textContent = matches
+      document.getElementById('viewsCount').textContent = views
+      document.getElementById('profileStatus').textContent = telegramId ? 'Telegram профиль подключен и работает' : 'Telegram профиль не подключен'
+      document.getElementById('profilePremium').textContent = 'Premium'
 
-          document.getElementById('profileName').textContent = age ? `${name}, ${age}` : name
-          document.getElementById('profileHandle').textContent = telegramHandle ? `@${telegramHandle.replace(/^@/, '')}` : ''
-          document.getElementById('telegramId').textContent = telegramId ? `Telegram ID: ${telegramId}` : 'Telegram ID: не подключен'
-          document.getElementById('profileTelegramId').textContent = telegramId ? telegramId : 'не подключен'
-          document.getElementById('profileTelegramHandle').textContent = telegramHandle ? `@${telegramHandle.replace(/^@/, '')}` : 'не подключен'
-          document.getElementById('profileCity').innerHTML = renderCityWithGeo(city, distance, geoEnabled)
-          document.getElementById('profileBio').textContent = bio
-          const photoEl = document.getElementById('photo')
-          if (photo) {
-            photoEl.style.backgroundImage = `url('${photo}')`
-            photoEl.textContent = ''
-          } else if (avatar && avatar.length === 1) {
-            photoEl.style.backgroundImage = 'none'
-            photoEl.textContent = avatar
-            photoEl.classList.add('avatar-letter')
-          }
-          return
-        }
-
-        const name = 'Алина'
-        const age = ''
-        const city = 'Казань'
-        const bio = 'Описание профиля, короткая биография и интересы.'
-        document.getElementById('profileName').textContent = name
-        document.getElementById('profileHandle').textContent = ''
-        document.getElementById('telegramId').textContent = 'Telegram ID: не подключен'
-        document.getElementById('profileTelegramId').textContent = 'не подключен'
-        document.getElementById('profileTelegramHandle').textContent = 'не подключен'
-        document.getElementById('profileCity').innerHTML = renderCityWithGeo(city)
-        document.getElementById('profileBio').textContent = bio
-      } catch (err) {
-        // fallback
+      const avatarEl = document.getElementById('profileAvatar')
+      if (photo) {
+        avatarEl.style.backgroundImage = `url('${photo}')`
+        avatarEl.textContent = ''
+        avatarEl.classList.add('profile-avatar-filled')
+      } else {
+        avatarEl.style.backgroundImage = 'none'
+        avatarEl.textContent = displayName[0] ? displayName[0].toUpperCase() : 'A'
+        avatarEl.classList.remove('profile-avatar-filled')
       }
     }
 
-    (function() {
-      try {
-        const savedTheme = localStorage.getItem('theme') || 'default'
-        document.body.classList.remove('theme-dark', 'theme-pink')
-        if (savedTheme !== 'default') {
-          document.body.classList.add(`theme-${savedTheme}`)
-        }
-      } catch (err) {
-        // fallback if localStorage is not available
+    function initProfilePage() {
+      let user = getStoredUser() || {}
+      const tgUser = getTelegramWebAppUser()
+      if (tgUser && tgUser.id) {
+        user = updateStoredUser((me) => {
+          me.telegram_id = String(tgUser.id)
+          me.telegram_username = tgUser.username || me.telegram_username
+          me.telegram_name = tgUser.name || [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') || me.telegram_name
+          me.telegram_photo_url = tgUser.photo_url || tgUser.photoURL || me.telegram_photo_url
+        })
       }
-      loadProfile()
-    })()
+      if (!Object.keys(user).length) {
+        user = {
+          name: 'Алина',
+          telegram_id: '',
+          telegram_username: '',
+          telegram_name: '',
+          telegram_photo_url: '',
+          bio: 'Описание профиля, короткая биография и интересы.',
+          likes: 0,
+          matches: 0,
+          views: 0,
+        }
+      }
+      applyProfile(user)
+    }
+
+    initProfilePage()
   </script>
 </body>
 </html>

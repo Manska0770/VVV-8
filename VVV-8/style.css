@@ -101,6 +101,8 @@ button:focus-visible { outline: none; }
 .photo::after { content: ''; position: absolute; inset: 0; background: none; }
 .photo-overlay { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 14px 12px; display: flex; flex-direction: column; gap: 6px; z-index: 3; }
 .profile-name { margin: 0; color: #fff; font-size: 1.95rem; font-weight: 700; line-height: 1.05; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 6px; background: none; padding: 0; border-radius: 0; box-shadow: none; }
+.profile-subtitle, .profile-id { margin: 6px 0 0; color: rgba(255,255,255,0.88); font-size: 0.95rem; line-height: 1.35; }
+.profile-id { color: rgba(255,255,255,0.78); font-size: 0.85rem; }
 .profile-city { margin: 0; color: rgba(255,255,255,0.92); font-size: 0.98rem; display: inline-flex; align-items: center; gap: 8px; }
 .photo { position: absolute; inset: 0; background-size: cover; background-position: center 55%; transition: opacity 260ms ease, transform 260ms cubic-bezier(.22,.9,.36,1); }
 .photo-back { z-index: 1; opacity: 1; }
@@ -147,6 +149,9 @@ button:focus-visible { outline: none; }
   height: 198px;
   overflow-y: auto;
 }
+.profile-meta { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.profile-meta-row { margin: 0; color: var(--text); font-size: 0.95rem; line-height: 1.5; }
+.profile-meta-row strong { color: var(--text); font-weight: 700; }
 
 /* Увеличим размер описания в анкетах */
 .profile-page .profile-bio {

@@ -271,13 +271,42 @@ function initAuth() {
 
 function getTelegramIdFromWebApp() {
   try {
-    const tg = window.Telegram
-    const webapp = tg?.WebApp
-    if (webapp) {
-      const user = webapp.initDataUnsafe?.user || webapp.initData?.user
-      if (user && user.id) {
-        return user
+    const webapp = window.Telegram?.WebApp || window.parent?.Telegram?.WebApp || window.TelegramWebApp || window.WebApp || null
+    if (!webapp) return null
+
+    let user = null
+    if (webapp.initDataUnsafe && typeof webapp.initDataUnsafe === 'object') {
+      user = webapp.initDataUnsafe.user
+    }
+    if (!user && webapp.initData && typeof webapp.initData === 'object') {
+      user = webapp.initData.user
+    }
+
+    if (!user && webapp.initData && typeof webapp.initData === 'string') {
+      const raw = webapp.initData
+      if (raw.includes('user=')) {
+        try {
+          const params = new URLSearchParams(raw)
+          const userJson = params.get('user')
+          if (userJson) {
+            user = JSON.parse(userJson)
+          }
+        } catch (err) {
+          console.warn('Telegram WebApp initData parse failed', err)
+        }
       }
+      if (!user && raw.trim().startsWith('{')) {
+        try {
+          const parsed = JSON.parse(raw)
+          user = parsed.user || parsed
+        } catch (err) {
+          console.warn('Telegram WebApp initData JSON parse failed', err)
+        }
+      }
+    }
+
+    if (user && user.id) {
+      return user
     }
   } catch (err) {
     console.warn('Telegram WebApp read failed', err)
@@ -1363,6 +1392,14 @@ async function init() {
   })() || 'default'
   setTheme(savedTheme)
 
+  if (window.Telegram?.WebApp) {
+    try {
+      window.Telegram.WebApp.ready()
+    } catch (err) {
+      console.warn('Telegram WebApp ready failed', err)
+    }
+  }
+
   const hasMainAppUi = Boolean(photoEl && profileNameEl && profileCityEl && profileBioEl && likeBtn && skipBtn && filterBtn)
 
     if (hasMainAppUi) {
@@ -1660,10 +1697,8 @@ async function init() {
         const botCheckResult = getTelegramIdFromWebApp()
         if (botCheckResult && botCheckResult.id) {
           me.telegram_id = String(botCheckResult.id)
-          if (botCheckResult.username) me.telegram_username = botCheckResult.username
-          if (botCheckResult.first_name || botCheckResult.last_name) {
-            me.telegram_name = [botCheckResult.first_name, botCheckResult.last_name].filter(Boolean).join(' ')
-          }
+          me.telegram_username = botCheckResult.username || botCheckResult.user_name || me.telegram_username
+          me.telegram_name = botCheckResult.name || botCheckResult.first_name || botCheckResult.last_name || me.telegram_name
           saveMyProfile(me)
           if (humanCheckStatus) {
             humanCheckStatus.textContent = 'Telegram ID зафиксирован. Можно сохранить анкету.'
